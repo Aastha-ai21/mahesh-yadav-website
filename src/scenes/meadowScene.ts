@@ -34,7 +34,7 @@ class Butterfly {
   draw(ctx: Ctx, t: number) {
     const open = 0.5 + 0.5 * Math.cos(this.flap)
     const amp = 0.7 + 0.3 * Math.sin(t * 0.45 + this.seed)
-    const sx = 0.22 + 0.78 * open * amp
+    const sx = 0.4 + 0.6 * open * amp
     const s = this.s
     ctx.save()
     ctx.translate(this.x, this.y)
@@ -88,7 +88,7 @@ class Butterfly {
 
 export const meadowScene: SceneFactory = (ctx, env) => {
   const grass = makeGrass({
-    density: env.mobile ? 0.2 : 0.3,
+    density: env.mobile ? 0.14 : 0.2,
     minH: env.mobile ? 34 : 46,
     maxH: env.mobile ? 78 : 118,
     seed: 11,
@@ -106,12 +106,12 @@ export const meadowScene: SceneFactory = (ctx, env) => {
       const r = rng(5)
       const n = env.mobile ? 7 : 16
       flowers = Array.from({ length: n }, () => ({
-        x: 20 + r() * (w - 40), h: 54 + r() * 70, r: 2.6 + r() * 1.6, ph: r() * 6, pink: r() > 0.55,
+        x: 20 + r() * (w - 40), h: 60 + r() * 70, r: 4 + r() * 2, ph: r() * 6, pink: r() > 0.55,
       }))
       if (flies.length === 0) {
         flies.push(
-          new Butterfly(w * 0.2, h * 0.62, 1.3, 9, ['rgba(255,252,238,0.9)', 'rgba(244,236,196,0.62)']),
-          new Butterfly(w * 0.7, h * 0.52, 2.1, 7.5, ['rgba(255,255,255,0.88)', 'rgba(248,226,170,0.6)']),
+          new Butterfly(w * 0.2, h * 0.62, 1.3, 11, ['rgba(255,252,238,0.9)', 'rgba(244,236,196,0.62)']),
+          new Butterfly(w * 0.7, h * 0.52, 2.1, 9.5, ['rgba(255,255,255,0.88)', 'rgba(248,226,170,0.6)']),
         )
       }
     },

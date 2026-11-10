@@ -45,7 +45,7 @@ export function About() {
 
         <Reveal className="text-center" >
           <figure style={{ margin: '110px 0 0' }}>
-            <blockquote className="pull breathe" style={{ margin: 0 }}>&ldquo;{ABOUT.pullQuote}&rdquo;</blockquote>
+            <blockquote className="pull breathe" style={{ margin: '0 auto' }}>&ldquo;{ABOUT.pullQuote}&rdquo;</blockquote>
             <figcaption className="label" style={{ marginTop: 22 }}>— {ABOUT.pullQuoteBy}</figcaption>
           </figure>
         </Reveal>

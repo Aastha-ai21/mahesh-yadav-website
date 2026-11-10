@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { HERO } from '../content'
-import { createLotusScene } from '../three/lotusScene'
 import { LotusIcon, Reveal } from './ui'
 
 export function Hero() {
@@ -11,15 +10,20 @@ export function Hero() {
     const el = box.current
     if (!el) return
     let handle: { dispose(): void } | undefined
-    try {
-      handle = createLotusScene(el, {
-        reduced: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-        mobile: window.innerWidth < 768,
+    let cancelled = false
+    import('../three/lotusScene')
+      .then(({ createLotusScene }) => {
+        if (cancelled) return
+        handle = createLotusScene(el, {
+          reduced: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+          mobile: window.innerWidth < 768,
+        })
       })
-    } catch {
-      setFailed(true)
+      .catch(() => setFailed(true))
+    return () => {
+      cancelled = true
+      handle?.dispose()
     }
-    return () => handle?.dispose()
   }, [])
 
   return (

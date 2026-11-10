@@ -139,8 +139,8 @@ export function createLotusScene(container: HTMLElement, opts: { reduced: boolea
 
   const scene = new THREE.Scene()
   const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 60)
-  const camBase = new THREE.Vector3(0, 3.0, 7.6)
-  const look = new THREE.Vector3(0, 0.45, 0)
+  const camBase = new THREE.Vector3(0, 2.7, 7.4)
+  const look = new THREE.Vector3(0, 0.55, 0)
   camera.position.copy(camBase)
 
   scene.add(new THREE.HemisphereLight(0xfff7ee, 0xeacbd4, 1.15))
@@ -155,17 +155,17 @@ export function createLotusScene(container: HTMLElement, opts: { reduced: boolea
   const waterMat = new THREE.ShaderMaterial({
     transparent: true,
     depthWrite: false,
-    uniforms: { uTime: { value: 0 } },
+    uniforms: { uTime: { value: 0 }, uR: { value: 2.9 } },
     vertexShader: `varying vec2 vP; void main(){ vP = position.xz; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
     fragmentShader: `
-      uniform float uTime; varying vec2 vP;
+      uniform float uTime; uniform float uR; varying vec2 vP;
       void main(){
-        float d = length(vP);
-        float a = smoothstep(7.0, 2.6, d);
+        float d = length(vec2(vP.x, vP.y*1.25));
+        float a = smoothstep(uR, uR*0.32, d);
         vec3 deep = vec3(0.50,0.66,0.62);
         vec3 light = vec3(0.80,0.89,0.85);
         float w = sin(vP.x*2.2+uTime*0.35)*sin(vP.y*1.9-uTime*0.28)*0.5+0.5;
-        vec3 col = mix(light, deep, smoothstep(0.0,6.0,d)*0.75) + (w-0.5)*0.03;
+        vec3 col = mix(light, deep, smoothstep(0.0,3.0,d)*0.75) + (w-0.5)*0.03;
         col += vec3(0.12,0.09,0.02)*smoothstep(4.0,0.0,length(vP-vec2(2.6,-3.4)));
         gl_FragColor = vec4(col, a*0.86);
       }`,
@@ -186,12 +186,12 @@ export function createLotusScene(container: HTMLElement, opts: { reduced: boolea
   const lotus = new THREE.Group()
   const petalMat = new THREE.MeshStandardMaterial({
     vertexColors: true, roughness: 0.55, metalness: 0, side: THREE.DoubleSide,
-    emissive: new THREE.Color(0xffd9e4), emissiveIntensity: 0.1,
+    emissive: new THREE.Color(0xffd9e4), emissiveIntensity: 0.32,
   })
   const layers: PetalSpec[] = [
-    { count: 9, L: 1.08, W: 0.31, a0: 26, a1: -10, cup: 0.32, y0: 0.0, r0: 0.14, offset: 0, pink: 1.0 },
-    { count: 8, L: 0.96, W: 0.28, a0: 52, a1: 14, cup: 0.5, y0: 0.04, r0: 0.11, offset: 0.35, pink: 0.95 },
-    { count: 7, L: 0.72, W: 0.23, a0: 76, a1: 58, cup: 0.62, y0: 0.08, r0: 0.08, offset: 0.1, pink: 0.85 },
+    { count: 9, L: 1.08, W: 0.31, a0: 42, a1: 2, cup: 0.34, y0: 0.0, r0: 0.14, offset: 0, pink: 1.0 },
+    { count: 8, L: 0.96, W: 0.28, a0: 64, a1: 30, cup: 0.5, y0: 0.04, r0: 0.11, offset: 0.35, pink: 0.95 },
+    { count: 7, L: 0.72, W: 0.23, a0: 82, a1: 70, cup: 0.62, y0: 0.08, r0: 0.08, offset: 0.1, pink: 0.85 },
   ]
   const petalGeos: THREE.BufferGeometry[] = []
   for (const spec of layers) {
@@ -235,24 +235,24 @@ export function createLotusScene(container: HTMLElement, opts: { reduced: boolea
     g.rotation.set(Math.sin(a) * 0.18, 0, -Math.cos(a) * 0.18)
     lotus.add(g)
   }
-  lotus.scale.setScalar(1.25)
+  lotus.scale.setScalar(1.4)
   scene.add(lotus)
 
   // ---- lily pads
   const padGeo = padGeometry()
   const padMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7, side: THREE.DoubleSide })
   const pads = [
-    { x: -2.0, z: 0.9, s: 0.62, r: 1.2 },
-    { x: 1.9, z: 0.7, s: 0.72, r: 3.4 },
-    { x: -1.1, z: -1.6, s: 0.5, r: 5.0 },
-    { x: 1.3, z: -1.7, s: 0.66, r: 0.4 },
+    { x: -1.25, z: 1.0, s: 0.5, r: 1.2 },
+    { x: 1.25, z: 0.95, s: 0.55, r: 3.4 },
+    { x: -1.0, z: -1.4, s: 0.42, r: 5.0 },
+    { x: 1.2, z: -1.4, s: 0.5, r: 0.4 },
   ].map((p, i) => {
     const m = new THREE.Mesh(padGeo, padMat)
     m.position.set(p.x, 0.015, p.z)
     m.scale.setScalar(p.s)
     m.rotation.y = p.r
     scene.add(m)
-    return { m, base: p.r, ph: i * 1.7 }
+    return { m, base: p.r, ph: i * 1.7, bx: p.x, bz: p.z }
   })
 
   // ---- falling leaves
@@ -302,11 +302,15 @@ export function createLotusScene(container: HTMLElement, opts: { reduced: boolea
     renderer.domElement.style.height = '100%'
     camera.aspect = w / h
     // pull the camera back on narrow containers so the lotus stays framed
-    camBase.z = 7.6 * Math.max(1, 0.95 / camera.aspect)
+    camBase.z = 7.4 * Math.max(1, 0.8 / camera.aspect)
+    const hw = Math.tan((15 * Math.PI) / 180) * camBase.z * camera.aspect
+    waterMat.uniforms.uR.value = Math.min(2.9, hw * 1.02)
+    padK = Math.min(1, hw / 2.7)
     camera.updateProjectionMatrix()
     if (opts.reduced || !running) render(2)
   }
 
+  let padK = 1
   const clock = new THREE.Clock()
   let running = false
   let raf = 0
@@ -320,7 +324,7 @@ export function createLotusScene(container: HTMLElement, opts: { reduced: boolea
     lotus.rotation.x = Math.sin(time * 0.31) * 0.012
     lotus.rotation.z = Math.cos(time * 0.27) * 0.012
     pads.forEach((p) => {
-      p.m.position.y = 0.015 + Math.sin(time * 0.5 + p.ph) * 0.008
+      p.m.position.set(p.bx * padK, 0.015 + Math.sin(time * 0.5 + p.ph) * 0.008, p.bz)
       p.m.rotation.y = p.base + Math.sin(time * 0.1 + p.ph) * 0.12
     })
     ripples.forEach((m, i) => {
